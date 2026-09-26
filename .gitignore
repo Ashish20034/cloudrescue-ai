@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+
+# Deployment artifacts
+*.zip
+
+# AWS deployment/test files
+cloudfront-config.json
+cloudfront-oac.json
+lambda-response.json
+lambda-test.json
+s3-policy.json
+
+# Local environment/secrets
+.env
+.env.*
+!.env.example
+
+# OS/editor files
+.DS_Store
+.vscode/
