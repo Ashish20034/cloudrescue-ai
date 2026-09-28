@@ -140,7 +140,10 @@ def lambda_handler(event, context):
 
             for instance in health_data:
 
-                if instance["status"] != "healthy":
+                if (
+                    instance["status"] != "healthy"
+                    and instance["state"] != "terminated"
+                ):
 
                     incident = create_incident(
                         service="EC2",
