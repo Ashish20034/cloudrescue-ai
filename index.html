@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CloudRescue AI</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        header {
+            padding: 24px 40px;
+            background: #111827;
+            border-bottom: 1px solid #334155;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            color: #94a3b8;
+        }
+
+        .container {
+            padding: 30px 40px;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .number {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .section {
+            margin-top: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 11px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .incident {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 18px;
+        }
+
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .severity {
+            background: #7f1d1d;
+            color: #fecaca;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .problem {
+            font-size: 18px;
+            margin: 15px 0;
+        }
+
+        .analysis {
+            background: #111827;
+            border-radius: 10px;
+            padding: 18px;
+            margin-top: 15px;
+        }
+
+        .analysis h4 {
+            margin-bottom: 8px;
+        }
+
+        .analysis p {
+            color: #cbd5e1;
+        }
+
+        .analysis ul {
+            color: #cbd5e1;
+            padding-left: 20px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 900px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🚨 CloudRescue AI</h1>
+    <p>AI-powered AWS infrastructure incident response</p>
+</header>
+
+<div class="container">
+
+    <div class="stats">
+
+        <div class="card">
+            <h3>EC2 INSTANCES</h3>
+            <div class="number" id="instanceCount">-</div>
+        </div>
+
+        <div class="card">
+            <h3>HEALTHY</h3>
+            <div class="number" id="healthyCount">-</div>
+        </div>
+
+        <div class="card">
+            <h3>INCIDENTS</h3>
+            <div class="number" id="incidentCount">-</div>
+        </div>
+
+        <div class="card">
+            <h3>SYSTEM STATUS</h3>
+            <div class="number" id="systemStatus">Checking...</div>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <div class="section-header">
+            <h2>Infrastructure Health</h2>
+
+            <button onclick="loadDashboard()">
+                Check AWS Health
+            </button>
+              <button onclick="simulateIncident()">
+        Simulate Incident
+    </button>
+        </div>
+
+        <div id="health"></div>
+
+    </div>
+
+    <div class="section">
+
+        <div class="section-header">
+            <h2>Active Incidents</h2>
+        </div>
+
+        <div id="incidents"></div>
+
+    </div>
+
+</div>
+
+<script>
+
+const API_BASE =
+    "https://5h0sft8jjl.execute-api.us-east-1.amazonaws.com";
+
+
+async function simulateIncident() {
+    try {
+        const response = await fetch(
+            "https://5h0sft8jjl.execute-api.us-east-1.amazonaws.com/api/test-incident"
+        );
+
+        const result = await response.json();
+
+        if (result.status === "success") {
+            alert("Incident simulated successfully!");
+            await loadDashboard();
+        } else {
+            alert("Failed to simulate incident.");
+        }
+
+    } catch (error) {
+        console.error("Simulation error:", error);
+        alert("Could not connect to CloudRescue API.");
+    }
+}
+
+
+async function loadDashboard() {
+
+    try {
+
+        // -------------------------
+        // AWS Health
+        // -------------------------
+
+        const healthResponse =
+            await fetch(`${API_BASE}/api/health`);
+
+        const healthData =
+            await healthResponse.json();
+
+        if (healthData.status !== "success") {
+            throw new Error(
+                healthData.message || "Health API failed"
+            );
+        }
+
+        const health =
+            healthData.data || [];
+
+        document.getElementById("instanceCount")
+            .textContent = health.length;
+
+
+        const healthy =
+            health.filter(
+                item => item.status === "healthy"
+            ).length;
+
+        document.getElementById("healthyCount")
+            .textContent = healthy;
+
+
+        if (health.length === 0) {
+
+            document.getElementById("health").innerHTML = `
+                <div class="card empty">
+                    No EC2 instances found.
+                </div>
+            `;
+
+        } else {
+
+            document.getElementById("health").innerHTML =
+                health.map(instance => `
+                    <div class="card" style="margin-bottom:10px;">
+
+                        <strong>${instance.id}</strong>
+
+                        <br>
+
+                        State: ${instance.state}
+
+                        <br>
+
+                        Type: ${instance.type}
+
+                        <br>
+
+                        Status: ${instance.status}
+
+                    </div>
+                `).join("");
+        }
+
+
+        // -------------------------
+        // Incidents
+        // -------------------------
+
+        const incidentResponse =
+            await fetch(`${API_BASE}/api/incidents`);
+
+        const incidentData =
+            await incidentResponse.json();
+
+        if (incidentData.status !== "success") {
+            throw new Error(
+                incidentData.message || "Incident API failed"
+            );
+        }
+
+        const incidents =
+            incidentData.incidents || [];
+
+
+        document.getElementById("incidentCount")
+            .textContent = incidents.length;
+
+
+        document.getElementById("systemStatus")
+            .textContent =
+            incidents.length === 0
+                ? "Healthy"
+                : "Attention";
+
+
+        if (incidents.length === 0) {
+
+            document.getElementById("incidents").innerHTML = `
+                <div class="card empty">
+                    ✅ No active incidents detected.
+                </div>
+            `;
+
+        } else {
+
+            document.getElementById("incidents").innerHTML =
+                incidents.map(incident => {
+
+                    const analysis =
+                        incident.ai_analysis || {};
+
+                    const recommendations =
+                        analysis.recommendation || [];
+
+
+                    return `
+
+                    <div class="incident">
+
+                        <div class="incident-header">
+
+                            <strong>
+                                ${incident.id}
+                            </strong>
+
+                            <span class="severity">
+                                ${incident.severity.toUpperCase()}
+                            </span>
+
+                        </div>
+
+
+                        <div class="problem">
+                            ${incident.problem}
+                        </div>
+
+
+                        <p>
+                            <strong>Service:</strong>
+                            ${incident.service}
+                        </p>
+
+
+                        <p>
+                            <strong>Resource:</strong>
+                            ${incident.resource_id}
+                        </p>
+
+
+                        <div class="analysis">
+
+                            <h4>🤖 AI Analysis</h4>
+
+                            <p>
+                                <strong>Probable Root Cause:</strong>
+                                <br>
+                                ${analysis.root_cause || "Pending analysis"}
+                            </p>
+
+
+                            <p>
+                                <strong>Risk:</strong>
+                                ${analysis.risk || "Unknown"}
+                            </p>
+
+
+                            <h4>Recommended Actions</h4>
+
+                            <ul>
+                                ${recommendations.map(
+                                    item => `<li>${item}</li>`
+                                ).join("")}
+                            </ul>
+
+                        </div>
+
+                    </div>
+
+                    `;
+
+                }).join("");
+        }
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("systemStatus")
+            .textContent = "Error";
+
+        document.getElementById("incidents").innerHTML = `
+            <div class="card empty">
+                ❌ Unable to connect to CloudRescue API.
+            </div>
+        `;
+    }
+}
+
+loadDashboard();
+
+</script>
+
+</body>
+</html>
